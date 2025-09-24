@@ -1,0 +1,75 @@
+if [ -n "$TTY" ]; then
+  export GPG_TTY=$(tty)
+else
+  export GPG_TTY="$TTY"
+fi
+
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+
+if [ ! -d "$ZINIT_HOME" ]; then
+	mkdir -p "$(dirname $ZINIT_HOME)"
+	git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+fi
+
+source "${ZINIT_HOME}/zinit.zsh"
+
+zinit light Aloxaf/fzf-tab
+zinit light atuinsh/atuin
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-completions
+zinit light zsh-users/zsh-syntax-highlighting
+
+zinit snippet OMZP::command-not-found
+zinit snippet OMZP::git
+zinit snippet OMZP::sudo
+
+FPATH="$HOME/.docker/completions:$FPATH"
+autoload -Uz compinit && compinit
+
+bindkey '^f' autosuggest-accept
+bindkey '^r' atuin-search
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
+
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export EDITOR=nvim
+export VISUAL="$EDITOR"
+
+
+export PATH=$HOME/.local/bin:$PATH
+export PATH=$PATH:/home/corentin/.iximiuz/labctl/bin
+
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' menu no
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
+
+alias d="docker"
+alias g="git"
+alias lg="lazygit"
+alias lzd='lazydocker'
+alias n="nvim"
+alias t="terraform"
+alias vi="nvim"
+
+function mkgo
+{
+  command mkdir -p $1 && cd $1
+}
+
+eval "$(~/.local/bin/mise activate zsh)"
+
+eval "$(atuin init zsh)"
+eval "$(chezmoi completion zsh)"
+eval "$(gh completion -s zsh)"
+eval "$(labctl completion zsh)"
+eval "$(scw autocomplete script shell=zsh)"
+eval "$(starship init zsh)"
+eval "$(uv generate-shell-completion zsh)"
+eval "$(zoxide init --cmd cd zsh)"
+
+# WTF terraform
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /home/corentin/.local/share/mise/installs/terraform/1.13.3/terraform terraform
